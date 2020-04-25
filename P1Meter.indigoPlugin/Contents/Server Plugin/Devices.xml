@@ -1,0 +1,241 @@
+<?xml version="1.0"?>
+<Devices>
+
+   <Device type="custom" id="p1meter">
+      <Name>P1 Meter</Name>
+      <States>
+        <State id="textMessage">
+           <ValueType>String</ValueType>
+           <TriggerLabel>textMessage</TriggerLabel>
+           <ControlPageLabel>textMessage</ControlPageLabel>
+        </State>
+        <State id="netManager">
+           <ValueType>String</ValueType>
+           <TriggerLabel>netManager</TriggerLabel>
+           <ControlPageLabel>netManager</ControlPageLabel>
+        </State>
+        <State id="meterType">
+           <ValueType>String</ValueType>
+           <TriggerLabel>MeterType</TriggerLabel>
+           <ControlPageLabel>MeterType</ControlPageLabel>
+        </State>
+        <State id="dsmrVersion">
+           <ValueType>String</ValueType>
+           <TriggerLabel>dsmrVersion</TriggerLabel>
+           <ControlPageLabel>dsmrVersion</ControlPageLabel>
+        </State>
+        <State id="checkSum">
+           <ValueType>String</ValueType>
+           <TriggerLabel>checkSum</TriggerLabel>
+           <ControlPageLabel>checkSum</ControlPageLabel>
+        </State>
+        <State id="meterID">
+           <ValueType>String</ValueType>
+           <TriggerLabel>meterID</TriggerLabel>
+           <ControlPageLabel>meterID</ControlPageLabel>
+        </State>
+        <State id="timestamp">
+           <ValueType>String</ValueType>
+           <TriggerLabel>timestamp</TriggerLabel>
+           <ControlPageLabel>timestamp</ControlPageLabel>
+        </State>
+        <State id="currentTariff">
+           <ValueType>String</ValueType>
+          <TriggerLabel>currentTariff</TriggerLabel>
+           <ControlPageLabel>currentTariff</ControlPageLabel>
+        </State>
+        <State id="usedT1">
+           <ValueType>String</ValueType>
+           <TriggerLabel>usedT1</TriggerLabel>
+           <ControlPageLabel>usedT1</ControlPageLabel>
+        </State>
+        <State id="usedT2">
+           <ValueType>String</ValueType>
+           <TriggerLabel>usedT2</TriggerLabel>
+           <ControlPageLabel>usedT2</ControlPageLabel>
+        </State>
+        <State id="tariffUnit">
+           <ValueType>String</ValueType>
+           <TriggerLabel>tariffUnit</TriggerLabel>
+           <ControlPageLabel>tariffUnit</ControlPageLabel>
+        </State>
+        <State id="generatedT1">
+           <ValueType>String</ValueType>
+           <TriggerLabel>usedT1</TriggerLabel>
+           <ControlPageLabel>usedT1</ControlPageLabel>
+        </State>
+        <State id="generatedT2">
+           <ValueType>String</ValueType>
+           <TriggerLabel>usedT2</TriggerLabel>
+           <ControlPageLabel>usedT2</ControlPageLabel>
+        </State>
+        <State id="nowUsage">
+           <ValueType>String</ValueType>
+           <TriggerLabel>nowUsage</TriggerLabel>
+           <ControlPageLabel>nowUsage</ControlPageLabel>
+        </State>
+        <State id="nowGenerated">
+           <ValueType>String</ValueType>
+           <TriggerLabel>nowGenerated</TriggerLabel>
+           <ControlPageLabel>nowGenerated</ControlPageLabel>
+        </State>
+        <State id="nowSum">
+           <ValueType>String</ValueType>
+           <TriggerLabel>nowSum</TriggerLabel>
+           <ControlPageLabel>nowSum</ControlPageLabel>
+        </State>
+        <State id="nowUnit">
+           <ValueType>String</ValueType>
+           <TriggerLabel>nowUnit</TriggerLabel>
+           <ControlPageLabel>nowUnit</ControlPageLabel>
+        </State>
+         <State id="voltageNowPhase1">
+            <ValueType>String</ValueType>
+            <TriggerLabel>voltageNowPhase1</TriggerLabel>
+            <ControlPageLabel>voltageNowPhase1</ControlPageLabel>
+        </State>
+         <State id="voltageNowPhase2">
+           <ValueType>String</ValueType>
+            <TriggerLabel>voltageNowPhase2</TriggerLabel>
+            <ControlPageLabel>voltageNowPhase2</ControlPageLabel>
+         </State>
+         <State id="voltageNowPhase3">
+            <ValueType>String</ValueType>
+            <TriggerLabel>voltageNowPhase3</TriggerLabel>
+            <ControlPageLabel>voltageNowPhase3</ControlPageLabel>
+         </State>
+         <State id="currentNowPhase1">
+            <ValueType>String</ValueType>
+            <TriggerLabel>currentNowPhase1</TriggerLabel>
+            <ControlPageLabel>currentNowPhase1</ControlPageLabel>
+         </State>
+        <State id="currentNowPhase2">
+           <ValueType>String</ValueType>
+            <TriggerLabel>currentNowPhase2</TriggerLabel>
+            <ControlPageLabel>currentNowPhase2</ControlPageLabel>
+         </State>
+         <State id="currentNowPhase3">
+            <ValueType>String</ValueType>
+            <TriggerLabel>currentNowPhase3</TriggerLabel>
+            <ControlPageLabel>currentNowPhase3</ControlPageLabel>
+         </State>
+         <State id="usedNowPhase1">
+            <ValueType>String</ValueType>
+            <TriggerLabel>usedNowPhase1</TriggerLabel>
+            <ControlPageLabel>usedNowPhase1</ControlPageLabel>
+         </State>
+        <State id="usedNowPhase2">
+           <ValueType>String</ValueType>
+            <TriggerLabel>usedNowPhase2</TriggerLabel>
+            <ControlPageLabel>usedNowPhase2</ControlPageLabel>
+         </State>
+         <State id="usedNowPhase3">
+            <ValueType>String</ValueType>
+            <TriggerLabel>usedNowPhase3</TriggerLabel>
+            <ControlPageLabel>usedNowPhase3</ControlPageLabel>
+         </State>         
+         <State id="generatedNowPhase1">
+            <ValueType>String</ValueType>
+            <TriggerLabel>generatedNowPhase1</TriggerLabel>
+            <ControlPageLabel>generatedNowPhase1</ControlPageLabel>
+         </State>
+        <State id="generatedNowPhase2">
+           <ValueType>String</ValueType>
+            <TriggerLabel>generatedNowPhase2</TriggerLabel>
+            <ControlPageLabel>generatedNowPhase2</ControlPageLabel>
+         </State>
+         <State id="generatedNowPhase3">
+            <ValueType>String</ValueType>
+            <TriggerLabel>generatedNowPhase3</TriggerLabel>
+            <ControlPageLabel>generatedNowPhase3</ControlPageLabel>
+         </State>
+         <State id="outagesShortCount">
+            <ValueType>String</ValueType>
+            <TriggerLabel>outagesShortCount</TriggerLabel>
+            <ControlPageLabel>outagesShortCount</ControlPageLabel>
+         </State>
+         <State id="outagesLongCount">
+            <ValueType>String</ValueType>
+            <TriggerLabel>outagesLongCount</TriggerLabel>
+            <ControlPageLabel>outagesLongCount</ControlPageLabel>
+         </State>
+         <State id="outagesLongRecentTimestamp">
+            <ValueType>String</ValueType>
+            <TriggerLabel>outagesLongRecentTimestamp</TriggerLabel>
+            <ControlPageLabel>outagesLongRecentTimestamp</ControlPageLabel>
+         </State>
+         <State id="outagesLongRecentDuration">
+            <ValueType>String</ValueType>
+            <TriggerLabel>outagesLongRecentDuration</TriggerLabel>
+            <ControlPageLabel>outagesLongRecentDuration</ControlPageLabel>
+         </State>
+         <State id="voltageToLowCountPhase1">
+            <ValueType>String</ValueType>
+            <TriggerLabel>voltageToLowCountPhase1</TriggerLabel>
+            <ControlPageLabel>voltageToLowCountPhase1</ControlPageLabel>
+         </State>
+         <State id="voltageToLowCountPhase2">
+            <ValueType>String</ValueType>
+            <TriggerLabel>voltageToLowCountPhase2</TriggerLabel>
+            <ControlPageLabel>voltageToLowCountPhase2</ControlPageLabel>
+         </State>
+         <State id="voltageToLowCountPhase3">
+            <ValueType>String</ValueType>
+            <TriggerLabel>voltageToLowCountPhase3</TriggerLabel>
+            <ControlPageLabel>voltageToLowCountPhase3</ControlPageLabel>
+         </State>
+         <State id="voltageToHighCountPhase1">
+            <ValueType>String</ValueType>
+            <TriggerLabel>voltageToHighCountPhase1</TriggerLabel>
+            <ControlPageLabel>voltageToHighCountPhase1</ControlPageLabel>
+         </State>
+         <State id="voltageToHighCountPhase2">
+            <ValueType>String</ValueType>
+            <TriggerLabel>voltageToHighCountPhase2</TriggerLabel>
+            <ControlPageLabel>voltageToHighCountPhase2</ControlPageLabel>
+         </State>
+         <State id="voltageToHighCountPhase3">
+            <ValueType>String</ValueType>
+            <TriggerLabel>voltageToHighCountPhase3</TriggerLabel>
+            <ControlPageLabel>voltageToHighCountPhase3</ControlPageLabel>
+         </State>
+         <State id="gasMeterID">
+            <ValueType>String</ValueType>
+            <TriggerLabel>gasmeterID</TriggerLabel>
+            <ControlPageLabel>gasmeterID</ControlPageLabel>
+         </State>
+         <State id="gastimestamp">
+            <ValueType>String</ValueType>
+            <TriggerLabel>gastimestamp</TriggerLabel>
+            <ControlPageLabel>gastimestamp</ControlPageLabel>
+         </State>
+         <State id="gasused">
+            <ValueType>String</ValueType>
+            <TriggerLabel>gasused</TriggerLabel>
+            <ControlPageLabel>gasused</ControlPageLabel>
+         </State>
+         <State id="gastariffUnit">
+            <ValueType>String</ValueType>
+            <TriggerLabel>gastariffUnit</TriggerLabel>
+            <ControlPageLabel>gastariffUnit</ControlPageLabel>
+         </State>
+         <State id="gasMeterType">
+            <ValueType>String</ValueType>
+            <TriggerLabel>gastariffUnit</TriggerLabel>
+            <ControlPageLabel>gastariffUnit</ControlPageLabel>
+         </State>
+         <State id="gasValve">
+            <ValueType>String</ValueType>
+            <TriggerLabel>gasValve</TriggerLabel>
+            <ControlPageLabel>gasValvet</ControlPageLabel>
+         </State>
+         <State id="masterState">
+            <ValueType>String</ValueType>
+            <TriggerLabel>MasterState</TriggerLabel>
+            <ControlPageLabel>MasterState</ControlPageLabel>
+         </State>
+       </States>
+       <UiDisplayStateId>masterState</UiDisplayStateId>
+    </Device>
+
+</Devices>

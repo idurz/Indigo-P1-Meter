@@ -1,0 +1,37 @@
+<PluginConfig>
+
+    <SupportURL>https://www.zengers.net/indigo/p1-meter-plugin/</SupportURL>
+
+    <Field id="usbDevice" type="serialport" />
+
+    <Field id="dsmrversion" type="menu" defaultvalue="4">
+      <Label>DSMR Version:</Label>
+        <List>
+          <Option value="2">2.2</Option>
+          <Option value="4">&gt;=4.0</Option>
+        </List>
+  </Field>
+
+  <Field id="sleeptime" type="textfield" defaultvalue="120">
+    <Label>Time (sec) between measurements:</Label>
+  </Field>
+
+  <Field id="simpleSeparator1" type="separator" />
+
+  <Field id="show_raw" type="menu" defaultValue="0">
+    <Label>Show raw telegram in log:</Label>
+      <List>
+        <Option value="1">Yes (Debug)</Option>
+        <Option value="0">No (Normal)</Option>
+      </List>
+  </Field>
+
+	  <Field id="logLevel" type="menu" defaultValue="Normal">
+      <Label>Log Level:</Label>
+        <List>
+          <Option value="Verbose">Verbose</Option>
+          <Option value="Normal">Normal</Option>
+        </List>
+    </Field>
+
+</PluginConfig>
