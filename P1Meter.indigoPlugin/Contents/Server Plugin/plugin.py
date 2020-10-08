@@ -38,6 +38,10 @@
 #    0.1.0   Mar 20, 2020   First developerversion
 #    0.2.0   Apr 11, 2020   Switched engine class, see below now using github.com/nrocco/smeterd
 #    1.0.0   Apr 23, 2020   Bumped version number to have first public Github version out
+#    1.0.1   Oct 4 , 2020   Showing debug info for serial port
+#    1.0.2   Oct 5 , 2020   Implemented validateSerialPortUI helper function
+#    1.0.3   Oct 5 , 2020   Changed warning for unconfigured device to newly used field
+#
 #
 ##########################################################################################
 
@@ -59,13 +63,14 @@ class Plugin(indigo.PluginBase):
    #
    ##########################################################################################
 
-   #  Global variables
+   #  Global variable
    logLevel            = "Normal"        # Default no debug logging
    usbDevice           = "None"          # On which USB port do we find the P1 neter
    dsmrversion         = "0"             # Not defined yet
    sleeptime           = 60              # Pause between reading telegrarms
    show_raw            = 0               # Show all raw telegrams
    max_telegram_length = 40              # Prevent looping over garbish
+
 
    def __init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs):
       ##########################################################################################
@@ -74,7 +79,6 @@ class Plugin(indigo.PluginBase):
       #
       ##########################################################################################
       indigo.PluginBase.__init__(self,pluginId,pluginDisplayName,pluginVersion,pluginPrefs)
-
 
 
    def __del__(self):
@@ -140,7 +144,7 @@ class Plugin(indigo.PluginBase):
 
       #Check if config is complete by setting to default if no value is available
       self.logLevel           = self.pluginPrefs.get("logLevel","Normal")
-      self.usbDevice          = self.pluginPrefs.get("usbDevice","None")
+      self.usbDevice          = self.pluginPrefs.get("usbDevice_uiAddress","None")
       self.dsmrversion        = self.pluginPrefs.get("dsmrversion","4")
       self.sleeptime          = int(self.pluginPrefs.get("sleeptime",120))
       self.show_raw           = int(self.pluginPrefs.get("show_raw",0))
@@ -169,11 +173,12 @@ class Plugin(indigo.PluginBase):
       #
       ##########################################################################################
       self.verbose("Starting validatePrefsConfig")
-      errorDict = indigo.Dict()
+      self.verbose(valuesDict)
+      errorsDict = indigo.Dict()
 
       # Get usb device
-      self.usbDevice = str(valuesDict["usbDevice"])
-      self.verbose("USB device received %s" % self.usbDevice)
+      self.validateSerialPortUi(valuesDict, errorsDict, u'usbDevice') 
+      #self.usbDevice = str(valuesDict["usbDevice"])
 
       # DSMR Version
       self.dsmrversion = str(valuesDict["dsmrversion"])
@@ -185,7 +190,15 @@ class Plugin(indigo.PluginBase):
 
       # time between measurements
       self.sleeptime = int(valuesDict["sleeptime"])
+      if self.sleeptime < 10:
+         errorsDict["sleeptime"] = "The value of this field must be at least 10" 
 
+      if len(errorsDict) > 0:
+         # Some UI fields are invalid
+         return (False, valuesDict, errorsDict)
+
+      self.usbDevice = str(valuesDict["usbDevice_uiAddress"])
+      self.verbose("USB device %s will be used" % self.usbDevice)
       # If we arrive here, all values are ok. Update Server on this
       self.logger.info("Plugin Config Updated succesfull")
 
