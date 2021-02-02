@@ -41,7 +41,7 @@
 #    1.0.1   Oct 4 , 2020   Showing debug info for serial port
 #    1.0.2   Oct 5 , 2020   Implemented validateSerialPortUI helper function
 #    1.0.3   Oct 5 , 2020   Changed warning for unconfigured device to newly used field
-#
+#    1.0.4   Jan 6 , 2021   Removed error where no gas meter present in meter configuration
 #
 ##########################################################################################
 
@@ -218,7 +218,8 @@ class Plugin(indigo.PluginBase):
          mstate = "Producing {} W".format(sumup)
       else:
          mstate = "Consuming {} W".format(0-sumup)
-
+      self.verbose("Device summary state changed to " + mstate)
+      self.verbose("Attempting to store values in Indigo")
       P1Dev.updateStatesOnServer([
 
             {'key':'meterType',                  'value':keys['header']['meterType']},
@@ -274,6 +275,7 @@ class Plugin(indigo.PluginBase):
             {'key':'gasMeterType',               'value':keys['gas']['device_type']},
             {'key':'gasValve',                   'value':keys['gas']['valve']}
       ])
+      self.verbose("Store in Indigo finished")
       return
 
 
@@ -321,7 +323,7 @@ class Plugin(indigo.PluginBase):
         meter.disconnect()
 
       if self.show_raw == 1:
-         print(str(packet))
+         self.logger.info("\n" + str(packet) + "\n") # Send output to console iso print
          
       self.store_indigo(P1Dev,packet)
       return
@@ -443,6 +445,7 @@ class SmartMeter(object):
 
    def read_one_packet(self):
       datagram = b''
+      testgram = b''
       lines_read = 0
       startFound = False
       endFound = False
@@ -470,10 +473,53 @@ class SmartMeter(object):
          else:
             datagram = datagram + line
 
-      self.Plugin.verbose("Done reading one packet (containing {} lines)".format(len(datagram.splitlines())))
       self.Plugin.verbose("Total lines read from serial port: {}".format(lines_read))
-      self.Plugin.verbose("Constructing P1Packet from raw data")
 
+      # Test datagram for playing with the data when errors occur. Example live data
+      testgram = ("/Ene5\T210-D ESMR5.0\n\n" + 
+                 "1-3:0.2.8(50)\n"  + 
+                 "0-0:1.0.0(210106101849W)\n" +
+                 "0-0:96.1.1(4530303438303030303235313238343138)\n" +
+                 "1-0:1.8.1(007342.728*kWh)\n" +
+                 "1-0:1.8.2(003622.485*kWh)\n" +
+                 "1-0:2.8.1(001312.715*kWh)\n" +
+                 "1-0:2.8.2(003168.188*kWh)\n" +
+                 "0-0:96.14.0(0002)\n" +
+                 "1-0:1.7.0(01.971*kW)\n" +
+                 "1-0:2.7.0(00.000*kW)\n" +
+                 "0-0:96.7.21(00994)\n" +
+                 "0-0:96.7.9(00006)\n" +
+                 "1-0:99.97.0(1)(0-0:96.7.19)(180806173744S)(0000000737*s)\n" +
+                 "1-0:32.32.0(00002)\n" +
+                 "1-0:52.32.0(00002)\n" +
+                 "1-0:72.32.0(00002)\n" +
+                 "1-0:32.36.0(00000)\n" +
+                 "1-0:52.36.0(00000)\n" +
+                 "1-0:72.36.0(00000)\n" +
+                 "0-0:96.13.0()\n" +
+                 "1-0:32.7.0(229.0*V)\n" +
+                 "1-0:52.7.0(233.0*V)\n" +
+                 "1-0:72.7.0(238.0*V)\n" +
+                 "1-0:31.7.0(008*A)\n" +
+                 "1-0:51.7.0(001*A)\n" +
+                 "1-0:71.7.0(001*A)\n" +
+                 "1-0:21.7.0(01.793*kW)\n" +
+                 "1-0:41.7.0(00.126*kW)\n" +
+                 "1-0:61.7.0(00.051*kW)\n" +
+                 "1-0:22.7.0(00.000*kW)\n" +
+                 "1-0:42.7.0(00.000*kW)\n" +
+                 "1-0:62.7.0(00.000*kW)\n" +
+                  "0-1:24.1.0(003)\n" +
+                  "0-1:96.1.0(4730303538353330303337363337333139)\n" +
+                  "0-1:24.2.1(210106101500W)(02247.105*m3)\n"
+                 "!80B2\n")
+      #datagram = testgram
+      if datagram == testgram:
+         self.Plugin.verbose("--> Running with test telegram data")
+
+      self.Plugin.verbose("Done reading one packet (containing {} lines)".format(len(datagram.splitlines())))
+      self.Plugin.verbose("Constructing P1Packet from raw data")
+      
       return P1Packet(datagram)
 
    def __enter__(self):
@@ -666,11 +712,11 @@ class P1Packet(object):
 
       # 0-1:96.1.0(4730303538353330303337363337333139)
       #            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-      keys['gas']['eid'] = self.get(b'^0-1:96\.1\.0\(([^)]+)\)')
+      keys['gas']['eid'] = self.get(b'^0-1:96\.1\.0\(([^)]+)\)',"30")
 
       # 0-1:24.1.0(003)
       #            ^^^
-      keys['gas']['device_type'] = self.get_int(b'^0-1:24\.1\.0\((\d)+\)')
+      keys['gas']['device_type'] = self.get_int(b'^0-1:24\.1\.0\((\d)+\)',0)
       
       # 0-1:24.2.1(200411171500S)(00889.906*m3)
       #            ^^^^^^^^^^^^^
@@ -686,7 +732,7 @@ class P1Packet(object):
 
       # 0-1:24.4.0(????)
       #            ^^^^
-      keys['gas']['valve'] = self.get_int(b'^0-1:24\.4\.0\((\d)\)')
+      keys['gas']['valve'] = self.get_int(b'^0-1:24\.4\.0\((\d)\)',0)
 
       # 0-0:96.13.1( )
       #             ^
@@ -694,7 +740,7 @@ class P1Packet(object):
 
       # 0-0:96.13.0( )
       #             ^
-      keys['msg']['text'] = self.get(b'^0-0:96\.13\.0\((.+)\)')
+      keys['msg']['text'] = self.get(b'^0-0:96\.13\.0\((.+)\)','')
 
       self._keys = keys
 
