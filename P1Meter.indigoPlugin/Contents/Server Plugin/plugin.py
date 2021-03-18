@@ -42,7 +42,8 @@
 #    1.0.2   Oct 5 , 2020   Implemented validateSerialPortUI helper function
 #    1.0.3   Oct 5 , 2020   Changed warning for unconfigured device to newly used field
 #    1.0.4   Jan 6 , 2021   Removed error where no gas meter present in meter configuration
-#
+#    1.0.5   Feb 27, 2021   Added Max and Min couters for today
+#    1.0.6   Mar 18, 2021   Version bump of 1.0.5 for github. No functional changes
 ##########################################################################################
 
 import sys
@@ -70,6 +71,8 @@ class Plugin(indigo.PluginBase):
    sleeptime           = 60              # Pause between reading telegrarms
    show_raw            = 0               # Show all raw telegrams
    max_telegram_length = 40              # Prevent looping over garbish
+   reset_flag          = 0               # Prevent resetting min and max multiple times/day
+   
 
 
    def __init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs):
@@ -218,8 +221,52 @@ class Plugin(indigo.PluginBase):
          mstate = "Producing {} W".format(sumup)
       else:
          mstate = "Consuming {} W".format(0-sumup)
+
+      maxProducedTime  = P1Dev.states['maxProducedTime']
+      maxUsedTime      = P1Dev.states['maxUsedTime']
+      minUsedTime      = P1Dev.states['minUsedTime']
+
+      try:
+         maxProducedToday = float(P1Dev.states['maxProducedToday'])
+      except ValueError:
+         maxProducedToday = 0
+
+      try:
+         maxUsedToday     = float(P1Dev.states['maxUsedToday'])
+      except ValueError:
+         maxUsedToday     = 0
+      
+      try:
+         minUsedToday     = float(P1Dev.states['minUsedToday'])
+      except ValueError:
+         minUsedToday     = 0
+
+      if maxProducedToday < float(keys['kwh']['current_produced'])*1000:
+         maxProducedToday = float(keys['kwh']['current_produced'])*1000
+         maxProducedTime  = datetime.now().strftime('%H:%M:%S')
+
+      if maxUsedToday < float(keys['kwh']['current_consumed'])*1000:
+         maxUsedToday = float(keys['kwh']['current_consumed'])*1000
+         maxUsedTime  = datetime.now().strftime('%H:%M:%S')
+         
+      if minUsedToday > float(keys['kwh']['current_consumed'])*1000 and datetime.now().hour < 6:
+         minUsedToday = float(keys['kwh']['current_consumed'])*1000
+         minUsedTime  = datetime.now().strftime('%H:%M:%S')
+
+      # Reset Min and Max
+      if datetime.now().hour < 1 and self.reset_flag != datetime.now().day:  
+         self.verbose("Reset daily min and max counters")
+         minUsedToday            = float(sys.maxint)
+         maxUsedToday            = float(0)
+         maxProducedToday        = float(0)
+         minUsedTime             = datetime.now().strftime('%H:%M:%S')
+         maxUsedTime             = datetime.now().strftime('%H:%M:%S')
+         maxProducedTime         = datetime.now().strftime('%H:%M:%S')
+         self.reset_flag = datetime.now().day # Prevent resetting twice
+
       self.verbose("Device summary state changed to " + mstate)
       self.verbose("Attempting to store values in Indigo")
+
       P1Dev.updateStatesOnServer([
 
             {'key':'meterType',                  'value':keys['header']['meterType']},
@@ -273,8 +320,16 @@ class Plugin(indigo.PluginBase):
             {'key':'gastariffUnit',              'value':keys['gas']['unit']},
             {'key':'gasMeterID',                 'value':keys['gas']['eid'].decode("hex")},
             {'key':'gasMeterType',               'value':keys['gas']['device_type']},
-            {'key':'gasValve',                   'value':keys['gas']['valve']}
+            {'key':'gasValve',                   'value':keys['gas']['valve']},
+
+            {'key':'minUsedToday',               'value': minUsedToday},
+            {'key':'maxUsedToday',               'value': maxUsedToday},
+            {'key':'maxProducedToday',           'value': maxProducedToday},
+            {'key':'minUsedTime',                'value': minUsedTime},
+            {'key':'maxUsedTime',                'value': maxUsedTime},
+            {'key':'maxProducedTime',            'value': maxProducedTime}
       ])
+
       self.verbose("Store in Indigo finished")
       return
 
@@ -324,10 +379,33 @@ class Plugin(indigo.PluginBase):
 
       if self.show_raw == 1:
          self.logger.info("\n" + str(packet) + "\n") # Send output to console iso print
-         
+      
       self.store_indigo(P1Dev,packet)
       return
 
+
+   def CheckDeviceVersion(self,P1Dev):
+      ##########################################################################################
+      #
+      # Check if the device definition matches the latest version. If not update
+      #
+      ##########################################################################################
+
+      # Begin 1.0.5 specific
+      if 'minUsedToday' in P1Dev.states:
+         return 
+
+      self.logger.info("Max and Min states not found in your device definition. Updating your device to add these states")
+      P1Dev.stateListOrDisplayStateIdChanged()   
+      P1Dev.updateStatesOnServer([
+             {'key':'minUsedToday',               'value': sys.maxint},
+             {'key':'maxUsedToday',               'value': 0},
+             {'key':'maxProducedToday',           'value': 0},
+             {'key':'minUsedTime',                'value': datetime.now().strftime('%H:%M:%S')},
+             {'key':'maxUsedTime',                'value': datetime.now().strftime('%H:%M:%S')},
+             {'key':'maxProducedTime',            'value': datetime.now().strftime('%H:%M:%S')}
+      ])
+      # End 1.0.5 specific
 
 
    def runConcurrentThread(self):
@@ -343,11 +421,16 @@ class Plugin(indigo.PluginBase):
          while True:
             # Act for all defined Master Devices
             MasterDevList = self.GetMasterDevList()
-            if len(MasterDevList) > 1:
-               self.verbose("Expecting exactly 1 P1 Device but found {}. Correct please".format(len(MasterDevList)))
-            else:
-                P1Dev = indigo.devices[MasterDevList[0]] 
-                self.readtelegram(P1Dev)
+            if len(MasterDevList) == 0:
+               self.logger.info("There is no P1 Device defined. Recreate please.")
+            else: 
+               if len(MasterDevList) > 1:
+                  self.verbose("Expecting exactly 1 P1 Device but found {}. Correct please".format(len(MasterDevList)))
+               else:
+                
+                  P1Dev = indigo.devices[MasterDevList[0]] 
+                  self.CheckDeviceVersion(P1Dev)
+                  self.readtelegram(P1Dev) # And read the next telegram
 
             self.sleep(self.sleeptime) # Ready for now. Sleep again till next minute
 
@@ -543,9 +626,6 @@ class P1PacketError(Exception):
 class P1Packet(object):
    _datagram = ''
 
-   def ts(self,v):
-      return  "20{}-{}-{}T{}:{}:{}".format(v[0:2],v[2:4],v[4:6],v[6:8],v[8:10],v[10:12])
-
    def __init__(self, datagram):
       self._datagram = datagram
 
@@ -564,42 +644,43 @@ class P1Packet(object):
       
       # /Ene5\T210-D ESMR5.0
       #  ^^^
-      keys['header']['netManager'] = self.get(b'^/s*(.{3})')
+      keys['header']['netManager'] =   self.get(b'^/s*(.{3})')
 
       # /Ene5\T210-D ESMR5.0
       #       ^^^^^^
-      keys['header']['meterType'] = self.get(b'^(?:/s*.{3}.{2})(\S*)(?:.*)')
+      keys['header']['meterType'] =    self.get(b'^(?:/s*.{3}.{2})(\S*)(?:.*)')
 
       # 1-3:0.2.8(50)
       #           ^^
-      keys['header']['dsmrVersion'] = self.get(b'^(?:1\-3\:0\.2\.8\()(.*)(?:\))')
+      keys['header']['dsmrVersion'] =  self.get(b'^(?:1\-3\:0\.2\.8\()(.*)(?:\))')
+
       # 0-0:1.0.0(200411171526S)
       #           ^^^^^^^^^^^^
-      keys['header']['measured_at'] = self.ts(self.get(b'^(?:0-0:1\.0\.0\()(\d*)'))
+      keys['header']['measured_at'] =  self.ts(b'^(?:0-0:1\.0\.0\()(\d*)')
 
       # 0-0:96.1.1(4530303438303030303235313238343138)
       #            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-      keys['kwh']['eid'] = self.get(b'^0-0:96\.1\.1\(([^)]+)\)')
+      keys['kwh']['eid'] =             self.get(b'^0-0:96\.1\.1\(([^)]+)\)')
 
       # 0-0:96.14.0(0001)
       #             ^^^^
-      keys['kwh']['tariff'] = self.get_int(b'^0-0:96\.14\.0\(([0-9]+)\)')
+      keys['kwh']['tariff'] =          self.get_int(b'^0-0:96\.14\.0\(([0-9]+)\)')
 
       # 0-0:96.3.10(?)
       #             ^
-      keys['kwh']['switch'] = self.get_int(b'^0-0:96\.3\.10\((\d)\)')
+      keys['kwh']['switch'] =          self.get_int(b'^0-0:96\.3\.10\((\d)\)')
 
       # 0-0:17.0.0(????.??*kW)
       #            ^^^^^^^
-      keys['kwh']['treshold'] = self.get_float(b'^0-0:17\.0\.0\(([0-9]{4}\.[0-9]{2})\*kW\)')
+      keys['kwh']['treshold'] =        self.get_float(b'^0-0:17\.0\.0\(([0-9]{4}\.[0-9]{2})\*kW\)')
 
       # 1-0:1.8.1(004486.031*kWh)
       #           ^^^^^^^^^^
-      keys['kwh']['low']['consumed'] = self.get(b'^1-0:1\.8\.1\(([0-9]+\.[0-9]+)\*kWh\)')
+      keys['kwh']['low']['consumed'] =  self.get(b'^1-0:1\.8\.1\(([0-9]+\.[0-9]+)\*kWh\)')
       
       # 1-0:2.8.1(000732.442*kWh)
       #           ^^^^^^^^^^
-      keys['kwh']['low']['produced'] = self.get(b'^1-0:2\.8\.1\(([0-9]+\.[0-9]+)\*kWh\)')
+      keys['kwh']['low']['produced'] =  self.get(b'^1-0:2\.8\.1\(([0-9]+\.[0-9]+)\*kWh\)')
 
        # 1-0:1.8.2(002272.913*kWh)
       #           ^^^^^^^^^^
@@ -627,9 +708,9 @@ class P1Packet(object):
 
       # 1-0:99.97.0(1)(0-0:96.7.19)(180806173744S)(0000000737*s)
       #                             ^^^^^^^^^^^^^
-      keys['kwh']['outages']['timestamp'] = self.ts(self.get(b'^(?:1-0:99\.97\.0\([0-9*]\)\(0-0\:96\.7\.19\)\()(\d*)'))
+      keys['kwh']['outages']['timestamp'] = self.ts(b'^(?:1-0:99\.97\.0\([0-9*]\)\(0-0\:96\.7\.19\)\()(\d*)')
 
-     # 1-0:99.97.0(1)(0-0:96.7.19)(180806173744S)(0000000737*s)
+      # 1-0:99.97.0(1)(0-0:96.7.19)(180806173744S)(0000000737*s)
       #                                           ^^^^^^^^^^
       keys['kwh']['outages']['duration'] = int(self.get(b'^(?:1-0:99\.97\.0\([0-9*]\)\(0-0\:96\.7\.19\)\()\d*[SW]\)\((\d*)'))
 
@@ -720,11 +801,7 @@ class P1Packet(object):
       
       # 0-1:24.2.1(200411171500S)(00889.906*m3)
       #            ^^^^^^^^^^^^^
-      measured_at = self.get(b'^(?:0-1:24\.[23]\.[01](?:\((\d+)[SW]?\))?)')
-      if measured_at:
-         keys['gas']['measured_at'] = self.ts(measured_at)
-      else:
-         keys['gas']['measured_at'] = None
+      keys['gas']['measured_at'] = self.ts(b'^(?:0-1:24\.[23]\.[01](?:\((\d+)[SW]?\))?)')
 
       # 0-1:24.2.1(200411171500S)(00889.906*m3)
       #                           ^^^^^^^^^
@@ -774,7 +851,14 @@ class P1Packet(object):
       return results.group(1).decode('ascii')
 
 
-
+   def ts(self,regex, default=None):
+      results = self.get(regex, None)
+      if not results:
+         return None 
+      v = results
+      if len(v) != 12:
+         return None 
+      return  "20{}-{}-{}T{}:{}:{}".format(v[0:2],v[2:4],v[4:6],v[6:8],v[8:10],v[10:12])
    def validate(self):
       pattern = re.compile(b'\r\n(?=!)')
       for match in pattern.finditer(self._datagram):
