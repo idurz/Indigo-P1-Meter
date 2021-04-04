@@ -234,6 +234,38 @@
             <TriggerLabel>MasterState</TriggerLabel>
             <ControlPageLabel>MasterState</ControlPageLabel>
          </State>
+      
+         <State id="minUsedToday">
+            <ValueType>String</ValueType>
+            <TriggerLabel>minUsedToday</TriggerLabel>
+            <ControlPageLabel>minUsedToday</ControlPageLabel>
+         </State>
+        <State id="maxUsedToday">
+            <ValueType>String</ValueType>
+            <TriggerLabel>maxUsedToday</TriggerLabel>
+            <ControlPageLabel>maxUsedToday</ControlPageLabel>
+         </State>
+         <State id="maxProducedToday">
+            <ValueType>String</ValueType>
+            <TriggerLabel>maxProducedToday</TriggerLabel>
+            <ControlPageLabel>maxProducedToday</ControlPageLabel>
+         </State>
+         <State id="minUsedTime">
+            <ValueType>String</ValueType>
+            <TriggerLabel>minUsedTime</TriggerLabel>
+            <ControlPageLabel>minUsedTime</ControlPageLabel>
+         </State>
+         <State id="maxUsedTime">
+            <ValueType>String</ValueType>
+            <TriggerLabel>maxUsedTime</TriggerLabel>
+            <ControlPageLabel>maxUsedTime</ControlPageLabel>
+         </State>     
+         <State id="maxProducedTime">
+            <ValueType>String</ValueType>
+            <TriggerLabel>maxProducedTime</TriggerLabel>
+            <ControlPageLabel>maxProducedTime</ControlPageLabel>
+         </State>
+
        </States>
        <UiDisplayStateId>masterState</UiDisplayStateId>
     </Device>

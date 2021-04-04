@@ -43,7 +43,7 @@
 #    1.0.3   Oct 5 , 2020   Changed warning for unconfigured device to newly used field
 #    1.0.4   Jan 6 , 2021   Removed error where no gas meter present in meter configuration
 #    1.0.5   Feb 27, 2021   Added Max and Min couters for today
-#    1.0.6   Mar 18, 2021   Version bump of 1.0.5 for github. No functional changes
+#    1.0.7   Mar 31, 2021   Fixed bug in device changes check
 ##########################################################################################
 
 import sys
@@ -151,6 +151,10 @@ class Plugin(indigo.PluginBase):
       self.dsmrversion        = self.pluginPrefs.get("dsmrversion","4")
       self.sleeptime          = int(self.pluginPrefs.get("sleeptime",120))
       self.show_raw           = int(self.pluginPrefs.get("show_raw",0))
+
+      # Check at startup if the device definition is changed
+      for dev in indigo.devices.iter("self"):
+         dev.stateListOrDisplayStateIdChanged()
 
       self.SetMasterState("Started")
       return
@@ -384,7 +388,7 @@ class Plugin(indigo.PluginBase):
       return
 
 
-   def CheckDeviceVersion(self,P1Dev):
+   #def CheckDeviceVersion(self,P1Dev):
       ##########################################################################################
       #
       # Check if the device definition matches the latest version. If not update
@@ -392,19 +396,19 @@ class Plugin(indigo.PluginBase):
       ##########################################################################################
 
       # Begin 1.0.5 specific
-      if 'minUsedToday' in P1Dev.states:
-         return 
+      #if 'minUsedToday' in P1Dev.states:
+      #   return 
 
-      self.logger.info("Max and Min states not found in your device definition. Updating your device to add these states")
-      P1Dev.stateListOrDisplayStateIdChanged()   
-      P1Dev.updateStatesOnServer([
-             {'key':'minUsedToday',               'value': sys.maxint},
-             {'key':'maxUsedToday',               'value': 0},
-             {'key':'maxProducedToday',           'value': 0},
-             {'key':'minUsedTime',                'value': datetime.now().strftime('%H:%M:%S')},
-             {'key':'maxUsedTime',                'value': datetime.now().strftime('%H:%M:%S')},
-             {'key':'maxProducedTime',            'value': datetime.now().strftime('%H:%M:%S')}
-      ])
+      #self.logger.info("Max and Min states not found in your device definition. Updating your device to add these states")
+      #P1Dev.stateListOrDisplayStateIdChanged()
+      #P1Dev.updateStatesOnServer([
+      #       {'key':'minUsedToday',               'value': sys.maxint},
+      #       {'key':'maxUsedToday',               'value': 0},
+      #       {'key':'maxProducedToday',           'value': 0},
+      #       {'key':'minUsedTime',                'value': datetime.now().strftime('%H:%M:%S')},
+      #       {'key':'maxUsedTime',                'value': datetime.now().strftime('%H:%M:%S')},
+      #       {'key':'maxProducedTime',            'value': datetime.now().strftime('%H:%M:%S')}
+      #])
       # End 1.0.5 specific
 
 
@@ -429,7 +433,7 @@ class Plugin(indigo.PluginBase):
                else:
                 
                   P1Dev = indigo.devices[MasterDevList[0]] 
-                  self.CheckDeviceVersion(P1Dev)
+                  #self.CheckDeviceVersion(P1Dev)
                   self.readtelegram(P1Dev) # And read the next telegram
 
             self.sleep(self.sleeptime) # Ready for now. Sleep again till next minute
